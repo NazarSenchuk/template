@@ -19,7 +19,7 @@ permissions:
 jobs:
   build:
     if: github.ref == 'refs/heads/dev'
-    uses: .github/workflows/2-build-image.yaml
+    uses: ./.github/workflows/2-build-image.yaml
     with:
       service: backend
       registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
@@ -29,7 +29,7 @@ jobs:
   deploy-dev:
     needs: build
     if: github.ref == 'refs/heads/dev'
-    uses: .github/workflows/3-deploy-dev.yaml
+    uses: ./.github/workflows/3-deploy-dev.yaml
     with:
       service: backend
       registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
@@ -39,7 +39,7 @@ jobs:
 
   promote-stage:
     if: github.event.pull_request.merged == true && github.base_ref == 'stage'
-    uses: .github/workflows/4-promote-stage.yaml
+    uses: ./.github/workflows/4-promote-stage.yaml
     with:
       service: backend
       registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
@@ -48,7 +48,7 @@ jobs:
 
   deploy-prod:
     if: github.event.pull_request.merged == true && github.base_ref == 'main'
-    uses: .github/workflows/5-deploy-prod.yaml
+    uses: ./.github/workflows/5-deploy-prod.yaml
     with:
       service: backend
       registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
