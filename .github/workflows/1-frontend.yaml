@@ -1,0 +1,56 @@
+name: Deploy Pipeline Frontend
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - frontend/**
+  pull_request:
+    branches: [stage, main]
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - frontend/**
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/dev'
+    uses: ./.github/workflows/2-build-image.yaml
+    with:
+      service: frontend
+      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+      role_to_assume: arn:aws:iam::649636402385:role/ECRRole
+      aws_region: eu-north-1
+
+  deploy-dev:
+    needs: build
+    if: github.ref == 'refs/heads/dev'
+    uses: ./.github/workflows/3-deploy-dev.yaml
+    with:
+      service: frontend
+      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+      image_tag: ${{ needs.build.outputs.image_tag }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+  promote-stage:
+    if: github.event.pull_request.merged == true && github.base_ref == 'stage'
+    uses: ./.github/workflows/4-promote-stage.yaml
+    with:
+      service: frontend
+      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+  deploy-prod:
+    if: github.event.pull_request.merged == true && github.base_ref == 'main'
+    uses: ./.github/workflows/5-deploy-prod.yaml
+    with:
+      service: frontend
+      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}

@@ -1,0 +1,55 @@
+name: Deploy Dev
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      service:
+        required: true
+        type: string
+      registry:
+        required: true
+        type: string
+    secrets:
+      PAT_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: dev
+
+    steps:
+      - name: Checkout infrastructure repository
+        uses: actions/checkout@v4
+        with:
+          repository: NazarSenchuk/infrastructure-test
+          token: ${{ secrets.PAT_TOKEN }}
+          path: infra-repo
+          ref: main
+
+      - name: Update dev image tag
+        env:
+          IMAGE_TAG: ${{ needs.build-image.outputs.image_tag }}
+          ECR_REGISTRY: ${{ inputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.service }}
+        run: |
+          cd infra-repo/kubernetes/${{ inputs.service }}/overlays/dev
+          
+          # Update image tag using kustomize
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          ./kustomize edit set image $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+          echo "Updated dev to image tag: $IMAGE_TAG"
+          cat kustomization.yaml
+
+      - name: Commit dev update
+        run: |
+          cd infra-repo
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add kubernetes/${{ inputs.service }}/overlays/dev/kustomization.yaml
+          git commit -m "Deploy to dev: ${{ github.sha_short }}"
+          git push origin main

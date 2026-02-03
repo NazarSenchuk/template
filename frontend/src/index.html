@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Frontend</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #eaeaea;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #message {
+            margin-top: 20px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .status-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .status.ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.unknown {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .endpoint {
+            background: #f1f3f4;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 5px 0;
+            display: inline-block;
+        }
+        
+        .connection-info {
+            background: #e8f4fd;
+            border: 1px solid #b6d4fe;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Docker Services Demo</h1>
+        <p class="subtitle">Frontend fetches from relative /api endpoint</p>
+        
+        <div class="connection-info">
+            <h3>🔗 Connection Method</h3>
+            <p>Frontend is fetching from: <code>/api</code> (relative URL)</p>
+            <p>This requires an API proxy or Nginx configuration in production.</p>
+        </div>
+        
+        <div class="card">
+            <h2>Backend API Test</h2>
+            <p>Click the button to fetch data from the backend service:</p>
+            <button id="fetchBtn">
+                <span id="btnText">Fetch Data from /api</span>
+                <span id="btnLoader" class="loader hidden"></span>
+            </button>
+            
+            <div id="message">
+                <p>No data fetched yet. Click the button above to test the backend connection.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Services Status</h2>
+            <div class="status-container">
+                <div class="status-card">
+                    <h3>🌐 Frontend</h3>
+                    <p>Running on port 3000</p>
+                    <div class="status ok">✓ Running</div>
+                </div>
+                
+                <div class="status-card">
+                    <h3>⚙️ Backend</h3>
+                    <p>API on /api endpoint</p>
+                    <div id="backendStatus" class="status unknown">Checking...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 How It Works</h3>
+            <p>✅ Frontend makes requests to relative <code>/api</code> URLs</p>
+            <p>✅ In production, you'd configure Nginx/Apache to proxy /api to backend</p>
+            <p>✅ For development, we're making direct fetch calls</p>
+            <p>✅ Current fetch endpoint: <code id="currentEndpoint">/api/message</code></p>
+        </div>
+    </div>
+
+    <script>
+        // Use relative URLs for API calls
+        const API_BASE = '/api';
+        
+        let isFetching = false;
+        
+        // Update the endpoint display
+        document.getElementById('currentEndpoint').textContent = `${API_BASE}/message`;
+        
+        // Check backend status on load
+        async function checkBackendStatus() {
+            const statusElement = document.getElementById('backendStatus');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    statusElement.textContent = '✓ Running';
+                    statusElement.className = 'status ok';
+                } else {
+                    statusElement.textContent = '✗ Error';
+                    statusElement.className = 'status error';
+                }
+            } catch (error) {
+                statusElement.textContent = '✗ Not Available';
+                statusElement.className = 'status error';
+                
+                // Show error details
+                console.error('Backend health check failed:', error);
+            }
+        }
+        
+        // Fetch data from backend
+        async function fetchData() {
+            if (isFetching) return;
+            
+            isFetching = true;
+            const messageDiv = document.getElementById('message');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            
+            // Show loading state
+            btnText.textContent = 'Fetching...';
+            btnLoader.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/message`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                messageDiv.innerHTML = `
+                    <h3>✅ Successfully connected to backend!</h3>
+                    <p><strong>Message:</strong> ${data.message}</p>
+                    <p><strong>Service:</strong> ${data.service}</p>
+                    <p><strong>Version:</strong> ${data.version}</p>
+                    <p class="timestamp"><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                    <p><strong>Endpoint used:</strong> <code>${API_BASE}/message</code></p>
+                `;
+                
+            } catch (error) {
+                messageDiv.innerHTML = `
+                    <h3>❌ Connection Error</h3>
+                    <p>Failed to connect to backend service at <code>${API_BASE}/message</code></p>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Possible issues:</p>
+                    <ul>
+                        <li>Backend service is not running</li>
+                        <li>API proxy is not configured</li>
+                        <li>Network connectivity issue</li>
+                    </ul>
+                    <p>For development, you might need to:</p>
+                    <ol>
+                        <li>Use the full backend URL (http://localhost:3001)</li>
+                        <li>Configure a proxy server</li>
+                        <li>Enable CORS on the backend</li>
+                    </ol>
+                `;
+            } finally {
+                // Reset button state
+                btnText.textContent = 'Fetch Data from /api';
+                btnLoader.classList.add('hidden');
+                isFetching = false;
+                
+                // Update status after fetch attempt
+                setTimeout(checkBackendStatus, 500);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('fetchBtn').addEventListener('click', fetchData);
+        
+        // Initial status check
+        checkBackendStatus();
+        
+        // Auto-check status every 10 seconds
+        setInterval(checkBackendStatus, 10000);
+        
+        // Fetch data on page load after 1 second
+        setTimeout(fetchData, 1000);
+    </script>
+</body>
+</html>

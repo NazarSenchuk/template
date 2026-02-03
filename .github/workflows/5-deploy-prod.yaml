@@ -1,0 +1,81 @@
+name: Deploy Prod
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+      registry:
+        required: true
+        type: string
+    secrets:
+      PAT_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: production
+
+    steps:
+
+      - name: Checkout infrastructure repository
+        uses: actions/checkout@v4
+        with:
+          repository: NazarSenchuk/infrastructure-test
+          token: ${{ secrets.PAT_TOKEN }}
+          path: infra-repo
+          ref: main
+
+          
+      - name: Get stage image tag
+        id: get-stage-tag
+        run: |
+          
+          cd infra-repo
+          TAG=$(grep 'newTag:' kubernetes/${{ inputs.service }}/overlays/stage/kustomization.yaml | head -n1 | awk '{print $2}')
+          echo "image_tag=$TAG" >> $GITHUB_OUTPUT        
+
+      - name: Update production with stage image
+        env:
+          IMAGE_TAG: ${{ steps.get-stage-tag.outputs.image_tag }}
+          ECR_REGISTRY: ${{ inputs.registry }}
+          ECR_REPOSITORY: ${{ inputs.service }}
+        run: |
+          cd infra-repo/kubernetes/${{ inputs.service }}/overlays/prod
+          
+          # Update image tag
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          ./kustomize edit set image $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+          echo "Updated production to use stage image: $IMAGE_TAG"
+          cat kustomization.yaml
+
+      - name: Commit production update
+        run: |
+          cd infra-repo
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add kubernetes/${{ inputs.service }}/overlays/prod/kustomization.yaml
+          git commit -m "Deploy to production: ${{ github.sha_short }}"
+          git push origin main
+
+      - name: Create production PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Deployed to Production**
+              
+              The staging image has been promoted to production.
+              ArgoCD will now deploy this to your production cluster.
+              
+              **Image Tag:** ${{ steps.get-stage-tag.outputs.image_tag }}
+              
+              Production deployment is complete. Monitor the deployment in ArgoCD.`
+            });
