@@ -32,7 +32,7 @@ jobs:
 
       - name: Update dev image tag
         env:
-          IMAGE_TAG: ${{ needs.build-image.outputs.image_tag }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
           ECR_REGISTRY: ${{ inputs.registry }}
           ECR_REPOSITORY: ${{ inputs.service }}
         run: |
