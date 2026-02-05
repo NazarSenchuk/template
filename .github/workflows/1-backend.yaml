@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/2-build-image.yaml
     with:
       service: backend
-      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+      registry: 649636402385.dkr.ecr.eu-north-1.amazonaws.com
       role_to_assume: arn:aws:iam::649636402385:role/ECRRole
       aws_region: eu-north-1
 
@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/3-deploy-dev.yaml
     with:
       service: backend
-      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+      registry: 649636402385.dkr.ecr.eu-north-1.amazonaws.com
       image_tag: ${{ needs.build.outputs.image_tag }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -42,7 +42,7 @@ jobs:
     uses: ./.github/workflows/4-promote-stage.yaml
     with:
       service: backend
-      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+      registry: 649636402385.dkr.ecr.eu-north-1.amazonaws.com
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
@@ -51,6 +51,6 @@ jobs:
     uses: ./.github/workflows/5-deploy-prod.yaml
     with:
       service: backend
-      registry: 649636402385.dkr.ecr.us-east-1.amazonaws.com
+      registry: 649636402385.dkr.ecr.eu-north-1.amazonaws.com
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
