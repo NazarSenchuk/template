@@ -42,7 +42,7 @@ jobs:
 
       - name: Login to ECR
         run: |
-          aws ecr get-login-password --region ${{ inputs.aws_region }} \
+          aws ecr get-login-password --region us-east-1 \
           | docker login --username AWS --password-stdin ${{ inputs.registry }}
 
       - name: Generate image tag

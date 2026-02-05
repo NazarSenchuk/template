@@ -30,7 +30,7 @@ jobs:
         id: get-dev-tag
         run: |
           cd infra-repo
-          TAG=$(grep 'newTag:' kubernetes/${{ inputs.service }}/overlays/stage/kustomization.yaml | head -n1 | awk '{print $2}')
+          TAG=$(grep 'newTag:' kubernetes/${{ inputs.service }}/overlays/dev/kustomization.yaml | head -n1 | awk '{print $2}')
           echo "image_tag=$TAG" >> $GITHUB_OUTPUT
 
       
