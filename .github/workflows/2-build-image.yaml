@@ -59,7 +59,7 @@ jobs:
           tags: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
 
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@v0.20.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
           severity: HIGH,CRITICAL
