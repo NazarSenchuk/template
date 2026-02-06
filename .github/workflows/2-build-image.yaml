@@ -50,10 +50,32 @@ jobs:
         run: echo "image_tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
 
-      - uses: docker/build-push-action@v6
+      - name: Build image
+        id: build
+        uses: docker/build-push-action@v6
         with:
           context: ./${{ inputs.service }}
-          push: true
+          load: true
           tags: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          output: trivy-report.json
+          format: json
+
+      - name: Upload Vulnerability Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.json
+          retention-days: 30
+
+      
+
+      - name: Push image
+        run: docker push ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
+
