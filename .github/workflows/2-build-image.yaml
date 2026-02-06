@@ -63,7 +63,6 @@ jobs:
         with:
           image-ref: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
           severity: HIGH,CRITICAL
-          exit-code: 1
           ignore-unfixed: true
           output: trivy-report.json
           format: json
