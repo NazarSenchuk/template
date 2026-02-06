@@ -1,5 +1,6 @@
 # Use official Node.js runtime as base image
 FROM node:18-alpine
+RUN apk update && apk upgrade --no-cache
 
 # Set working directory
 WORKDIR /app
@@ -7,6 +8,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+RUN npm ci --only=production
 # Install dependencies
 RUN npm install
 
