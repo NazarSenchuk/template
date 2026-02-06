@@ -8,7 +8,7 @@ app.use(express.json());
 // Simple API endpoint
 app.get('/api/message', (req, res) => {
   res.json({ 
-    message: 'Hello from backend67!',
+    message: 'Hello from backend67withscaning!',
     timestamp: new Date().toISOString()
   });
 });

@@ -50,10 +50,22 @@ jobs:
         run: echo "image_tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
 
-      - uses: docker/build-push-action@v6
+      - name: Build image
+        id: build
+        uses: docker/build-push-action@v6
         with:
           context: ./${{ inputs.service }}
-          push: true
+          load: true
           tags: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          image-ref: ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          ignore-unfixed: true
+
+      - name: Push image
+        run: docker push ${{ inputs.registry }}/${{ inputs.service }}:${{ steps.tag.outputs.image_tag }}
+
