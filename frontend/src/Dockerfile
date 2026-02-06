@@ -10,7 +10,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Install serve globally
 RUN npm install -g serve
